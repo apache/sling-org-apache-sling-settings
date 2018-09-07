@@ -56,6 +56,15 @@
                 <groupId>biz.aQute.bnd</groupId>
                 <artifactId>bnd-baseline-maven-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <excludePackageNames>
+                        org.apache.sling.settings.impl
+                    </excludePackageNames>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
