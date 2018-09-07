@@ -17,7 +17,7 @@
     specific language governing permissions and limitations
     under the License.
 --><metatype:MetaData xmlns:metatype="http://www.osgi.org/xmlns/metatype/v1.0.0" 
-                      localization="OSGI-INF/metatype/metatype">
+                      localization="OSGI-INF/l10n/metatype">
     <OCD id="org.apache.sling.settings.impl.SlingSettingsServiceImpl" name="%settings.name" description="%settings.description">
         <AD id="sling.name" type="String" name="%sling.name.name" description="%sling.name.description"/>
         <AD id="sling.description" type="String" name="%sling.description.name" description="%sling.description.description"/>
