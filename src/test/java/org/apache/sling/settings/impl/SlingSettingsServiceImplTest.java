@@ -28,11 +28,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.apache.sling.installer.api.provider.RunModeSupport;
 import org.apache.sling.settings.SlingSettingsService;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
@@ -104,6 +109,16 @@ public class SlingSettingsServiceImplTest {
 
         final String slingId = slingSettingsService.getSlingId();
         assertNotNull(slingId);
+    }
+
+    @Test
+    public void testGetBestRunModeMatchCountFromSpec() {
+        Assert.assertEquals(0, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4", Collections.singleton("test5")));
+        Assert.assertEquals(0, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4", Stream.of("test1", "test3").collect(Collectors.toSet())));
+        Assert.assertEquals(0, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4", Stream.of("test2", "test3").collect(Collectors.toSet())));
+        Assert.assertEquals(2, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4", Stream.of("test1", "test2").collect(Collectors.toSet())));
+        Assert.assertEquals(2, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4", Stream.of("test2", "test4").collect(Collectors.toSet())));
+        Assert.assertEquals(3, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4,test5.test6.test7", Stream.of("test1", "test2", "test4", "test5", "test6", "test7").collect(Collectors.toSet())));
     }
 
     private SlingSettingsService createSlingSettingsService(final File slingIdFile, final File optionsFile) throws IOException {

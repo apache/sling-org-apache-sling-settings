@@ -88,6 +88,10 @@ public interface SlingSettingsService {
      */
     String RUN_MODE_INSTALL_OPTIONS = "sling.run.mode.install.options";
 
+    String RUN_MODE_SPEC_OR_SEPARATOR = ",";
+    String RUN_MODE_SPEC_AND_SEPARATOR = ".";
+    String RUN_MODE_SPEC_NOT_PREFIX = "-";
+
     /**
      * Utility method to generate an absolute path
      * within Sling Home.
@@ -123,6 +127,24 @@ public interface SlingSettingsService {
      * @return A non modifiable set of run modes.
      */
     Set<String> getRunModes();
+
+    /**
+     * Checks if a given run mode spec is satisfied by the active run modes.
+     * A run mode spec consists out of run modes and operators (AND = ".", OR = "," and NOT = "-")
+     * and follows the following grammar in EBNF:
+     * <pre><code>
+     * run mode spec ::= conjunctions { "," conjunctions }
+     * conjunctions ::= conjunction { '.' conjunction }
+     * conjunction ::= notrunmode | runmode
+     * notrunmode ::= '-' runmode
+     * </code></pre>
+     * 
+     * The operator order is first "-" (not), second "." (AND), last "," (OR).
+     * @param spec the run mode spec string to check against
+     * @param activeRunModes the run modes against which to check
+     * @return the number of matching run modes or 0 if no match. If multiple disjunctions match the one with the highest number of matching run modes is returned.
+     */
+    int getBestRunModeMatchCountFromSpec(String spec);
 
     /**
      * Return the optional name of the instance.

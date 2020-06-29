@@ -22,8 +22,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.apache.sling</groupId>
-        <artifactId>sling</artifactId>
-        <version>34</version>
+        <artifactId>sling-bundle-parent</artifactId>
+        <version>39</version>
         <relativePath />
     </parent>
 
@@ -45,6 +45,7 @@
     <properties>
         <site.jira.version.id>12315254</site.jira.version.id>
         <site.javadoc.exclude>**.impl.**</site.javadoc.exclude>
+        <project.build.outputTimestamp>2019-10-02T08:04:00Z</project.build.outputTimestamp>
     </properties>
 
     <build>

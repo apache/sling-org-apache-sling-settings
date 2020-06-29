@@ -16,12 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
-/**
- *
- * @version 1.3.1
- */
-@org.osgi.annotation.versioning.Version("1.3.1")
+@org.osgi.annotation.versioning.Version("1.4.0")
 package org.apache.sling.settings;
 
 
