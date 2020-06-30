@@ -126,29 +126,11 @@ public class SlingSettingsServiceImplTest {
         when(context.getDataFile(OPTIONS_FILE_NAME)).thenReturn(optionsFile);
         // write options
         final List<SlingSettingsServiceImpl.Options> options = new ArrayList<SlingSettingsServiceImpl.Options>();
-        FileOutputStream fos = null;
-        ObjectOutputStream oos = null;
-        try {
-            fos = new FileOutputStream(optionsFile);
-            oos = new ObjectOutputStream(fos);
+        try (FileOutputStream fos = new FileOutputStream(optionsFile);
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(options);
         } catch (final IOException ioe) {
             throw new RuntimeException("Unable to write to options data file.", ioe);
-        } finally {
-            if (oos != null) {
-                try {
-                    oos.close();
-                } catch (IOException ignore) {
-                    // ...
-                }
-            }
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException ignore) {
-                    // ...
-                }
-            }
         }
         return new SlingSettingsServiceImpl(context);
     }
