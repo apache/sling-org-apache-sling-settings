@@ -28,6 +28,7 @@ import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Dictionary;
 import java.util.HashMap;
@@ -35,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import org.apache.sling.settings.SlingSettingsService;
 import org.osgi.framework.BundleContext;
@@ -285,6 +287,7 @@ public class SlingSettingsServiceImpl
     /**
      * @see org.apache.sling.settings.SlingSettingsService#getAbsolutePathWithinSlingHome(String)
      */
+    @Override
     public String getAbsolutePathWithinSlingHome(final String relativePath) {
         return new File(slingHome, relativePath).getAbsolutePath();
     }
@@ -292,6 +295,7 @@ public class SlingSettingsServiceImpl
     /**
      * @see org.apache.sling.settings.SlingSettingsService#getSlingId()
      */
+    @Override
     public String getSlingId() {
         return this.slingId;
     }
@@ -299,6 +303,7 @@ public class SlingSettingsServiceImpl
     /**
      * @see org.apache.sling.settings.SlingSettingsService#getSlingHome()
      */
+    @Override
     public URL getSlingHome() {
         return this.slingHomeUrl;
     }
@@ -306,6 +311,7 @@ public class SlingSettingsServiceImpl
     /**
      * @see org.apache.sling.settings.SlingSettingsService#getSlingHomePath()
      */
+    @Override
     public String getSlingHomePath() {
         return this.slingHome;
     }
@@ -313,13 +319,51 @@ public class SlingSettingsServiceImpl
     /**
      * @see org.apache.sling.settings.SlingSettingsService#getRunModes()
      */
+    @Override
     public Set<String> getRunModes() {
         return this.runModes;
+    }
+
+    @Override
+    public int getBestRunModeMatchCountFromSpec(String spec) {
+        return getBestRunModeMatchCountFromSpec(spec, runModes);
+    }
+
+    static int getBestRunModeMatchCountFromSpec(String spec, Collection<String> activeRunModes) {
+        int numMatchingRunModes = 0;
+        // 1. support OR
+        for (String discjunctivePart : spec.split(Pattern.quote(RUN_MODE_SPEC_OR_SEPARATOR))) {
+            int newNumMatchingRunModes = getBestRunModeMatchCountFromConjunctions(discjunctivePart, activeRunModes);
+            if (newNumMatchingRunModes > numMatchingRunModes) {
+                numMatchingRunModes = newNumMatchingRunModes;
+            }
+        }
+        return numMatchingRunModes;
+    }
+
+    static int getBestRunModeMatchCountFromConjunctions(String conjunctions, Collection<String> activeRunModes) {
+        int numMatchingRunModes = 0;
+        // 2. support AND
+        for (String conjunctivePart : conjunctions.split(Pattern.quote(RUN_MODE_SPEC_AND_SEPARATOR))) {
+            // 3. support NOT operator
+            if (conjunctivePart.startsWith(RUN_MODE_SPEC_NOT_PREFIX)) {
+                if (activeRunModes.contains(conjunctivePart.substring(RUN_MODE_SPEC_NOT_PREFIX.length()))) {
+                    return 0;
+                }
+            } else {
+                if (!activeRunModes.contains(conjunctivePart)) {
+                    return 0;
+                }
+            }
+            numMatchingRunModes++;
+        }
+        return numMatchingRunModes;
     }
 
     /**
      * @see org.apache.sling.settings.SlingSettingsService#getSlingName()
      */
+    @Override
     public String getSlingName() {
         synchronized ( this.slingProps ) {
             String name = this.slingProps.get(SLING_NAME);
@@ -333,6 +377,7 @@ public class SlingSettingsServiceImpl
     /**
      * @see org.apache.sling.settings.SlingSettingsService#getSlingDescription()
      */
+    @Override
     public String getSlingDescription() {
         synchronized ( this.slingProps ) {
             String desc = this.slingProps.get(SLING_DESCRIPTION);
