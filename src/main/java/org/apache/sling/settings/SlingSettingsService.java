@@ -143,6 +143,7 @@ public interface SlingSettingsService {
      * @param spec the run mode spec string to check against
      * @param activeRunModes the run modes against which to check
      * @return the number of matching run modes or 0 if no match. If multiple disjunctions match the one with the highest number of matching run modes is returned.
+     * @since 1.4.0 (Sling Settings Bundle 1.3.11)
      */
     int getBestRunModeMatchCountFromSpec(String spec);
 
