@@ -34,7 +34,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang.RandomStringUtils;
-import org.apache.sling.installer.api.provider.RunModeSupport;
 import org.apache.sling.settings.SlingSettingsService;
 import org.junit.After;
 import org.junit.Assert;
