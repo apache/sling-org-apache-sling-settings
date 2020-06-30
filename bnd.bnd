@@ -1,13 +1,8 @@
-Bundle-Activator: org.apache.sling.settings.impl.Activator
-
 Bundle-DocURL: http://sling.apache.org/documentation/bundles/sling-settings-orgapacheslingsettings.html
 
 DynamicImport-Package:\
   org.osgi.service.cm,\
   org.apache.felix.shell
-
-Provide-Capability:\
-  osgi.service;objectClass=org.apache.sling.settings.SlingSettingsService
 
 Import-Package:\
   org.osgi.service.cm;resolution:=optional,\

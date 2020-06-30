@@ -19,52 +19,26 @@
 package org.apache.sling.settings.impl;
 
 import java.io.PrintWriter;
-import java.util.Dictionary;
-import java.util.Hashtable;
 
 import org.apache.sling.settings.SlingSettingsService;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * This is a configuration printer for the web console which
  * prints out the sling settings.
  *
  */
+@Component(service = SlingSettingsPrinter.class, property= {"felix.webconsole.label=slingsettings","felix.webconsole.title=Sling Settings","felix.webconsole.configprinter.modes=always"})
 public class SlingSettingsPrinter {
-
-    private static ServiceRegistration pluginReg;
-
-    public static void initPlugin(final BundleContext bundleContext,
-            final SlingSettingsService service) {
-        final SlingSettingsPrinter printer = new SlingSettingsPrinter(service);
-
-        final Dictionary<String, String> props = new Hashtable<String, String>();
-        props.put(Constants.SERVICE_DESCRIPTION,
-            "Apache Sling Sling Settings Configuration Printer");
-        props.put(Constants.SERVICE_VENDOR, "The Apache Software Foundation");
-        props.put("felix.webconsole.label", "slingsettings");
-        props.put("felix.webconsole.title", "Sling Settings");
-        props.put("felix.webconsole.configprinter.modes", "always");
-
-        pluginReg = bundleContext.registerService(SlingSettingsPrinter.class.getName(),
-                printer,
-                props);
-    }
-
-    public static void destroyPlugin() {
-        if ( pluginReg != null) {
-            pluginReg.unregister();
-            pluginReg = null;
-        }
-    }
 
     private static String HEADLINE = "Apache Sling Settings";
 
     private final SlingSettingsService settings;
 
-    public SlingSettingsPrinter(final SlingSettingsService settings) {
+    @Activate
+    public SlingSettingsPrinter(@Reference final SlingSettingsService settings) {
         this.settings = settings;
     }
 
