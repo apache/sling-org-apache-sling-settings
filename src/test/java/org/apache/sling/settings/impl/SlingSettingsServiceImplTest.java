@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,6 +41,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.osgi.framework.BundleContext;
+import org.osgi.util.converter.Converter;
+import org.osgi.util.converter.Converters;
 
 public class SlingSettingsServiceImplTest {
 
@@ -50,11 +53,16 @@ public class SlingSettingsServiceImplTest {
     private File slingIdFile = null;
 
     private File optionsFile = null;
+    
+    private SlingSettingsServiceImpl.Configuration configuration;
 
     @Before
     public void before() throws IOException {
         slingIdFile = File.createTempFile(SLING_ID_FILE_NAME, "");
         optionsFile = File.createTempFile(OPTIONS_FILE_NAME, "");
+        Converter c = Converters.standardConverter();
+        // use standard configuration
+        configuration = c.convert(new HashMap<String, Object>()).to(SlingSettingsServiceImpl.Configuration.class);
     }
 
     @After
@@ -132,7 +140,7 @@ public class SlingSettingsServiceImplTest {
         } catch (final IOException ioe) {
             throw new RuntimeException("Unable to write to options data file.", ioe);
         }
-        return new SlingSettingsServiceImpl(context);
+        return new SlingSettingsServiceImpl(configuration, context);
     }
 
 }

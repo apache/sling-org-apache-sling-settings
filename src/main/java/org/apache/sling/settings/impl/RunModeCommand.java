@@ -19,44 +19,36 @@
 package org.apache.sling.settings.impl;
 
 import java.io.PrintStream;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.Set;
 
 import org.apache.felix.shell.Command;
+import org.apache.sling.settings.SlingSettingsService;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.propertytypes.ServiceDescription;
 
 /**
  * Run mode command for the shell.
  */
+@Component
+@ServiceDescription("Apache Sling Sling Run Mode Shell Command")
 public class RunModeCommand implements Command {
 
     private static final String CMD_NAME = "runmodes";
 
-    private final ServiceRegistration pluginReg;
-
     private final Set<String> modes;
 
-    public RunModeCommand(final BundleContext btx, final Set<String> modes) {
-        this.modes = modes;
-
-        final Dictionary<String, String> props = new Hashtable<String, String>();
-        props.put(Constants.SERVICE_DESCRIPTION,
-            "Apache Sling Sling Run Mode Shell Command");
-        props.put(Constants.SERVICE_VENDOR, "The Apache Software Foundation");
-
-        pluginReg = btx.registerService(Command.class.getName(), this, props);
-    }
-
-    public void destroy() {
-        pluginReg.unregister();
+    @Activate
+    public RunModeCommand(final BundleContext btx, @Reference SlingSettingsService slingSettings) {
+        this.modes = slingSettings.getRunModes();
     }
 
     /**
      * @see org.apache.felix.shell.Command#getName()
      */
+    @Override
     public String getName() {
         return CMD_NAME;
     }
@@ -64,6 +56,7 @@ public class RunModeCommand implements Command {
     /**
      * @see org.apache.felix.shell.Command#getShortDescription()
      */
+    @Override
     public String getShortDescription() {
         return "lists current run modes";
     }
@@ -71,6 +64,7 @@ public class RunModeCommand implements Command {
     /**
      * @see org.apache.felix.shell.Command#getUsage()
      */
+    @Override
     public String getUsage() {
         return CMD_NAME;
     }
@@ -78,9 +72,10 @@ public class RunModeCommand implements Command {
     /**
      * @see org.apache.felix.shell.Command#execute(java.lang.String, java.io.PrintStream, java.io.PrintStream)
      */
+    @Override
     public void execute(String command, PrintStream out, PrintStream err) {
         out.print("Current Run Modes: ");
-        if (modes == null || modes.size() == 0) {
+        if (modes == null || modes.isEmpty()) {
             out.println("-");
         } else {
             out.println(modes);

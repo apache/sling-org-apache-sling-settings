@@ -23,39 +23,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.util.Dictionary;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
-import org.osgi.framework.ServiceRegistration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
 
 /**
  * This is a configuration printer for the web console which
  * prints out the Sling properties from Launchpad if available.
- *
  */
+@Component(service = SlingPropertiesPrinter.class, property= {"felix.webconsole.label=slingprops","felix.webconsole.title=Sling Properties","felix.webconsole.configprinter.modes=always"})
 public class SlingPropertiesPrinter {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(SlingPropertiesPrinter.class);
-
-    private static ServiceRegistration propertiesPlugin;
-
-    public static void initPlugin(final BundleContext bundleContext) {
+    @Activate
+    public SlingPropertiesPrinter(BundleContext bundleContext) throws IOException {
         // if the properties are available, we register the sling properties plugin
         final String propUrl = bundleContext.getProperty("sling.properties.url");
         if ( propUrl != null ) {
             // try to read properties
-            Properties props = null;
-            try {
-                final URL url = new URL(propUrl);
-                final InputStream is = url.openStream();
+            try (final InputStream is = new URL(propUrl).openStream()) {
                 final Properties tmp = new Properties();
                 tmp.load(is);
                 // update props
@@ -68,39 +58,16 @@ public class SlingPropertiesPrinter {
                 props = tmp;
 
             } catch (IOException ioe) {
-                LOGGER.warn("Unable to read sling properties from " + propUrl, ioe);
+                throw new IOException("Unable to read sling properties from " + propUrl, ioe);
             }
-            if ( props != null ) {
-                final SlingPropertiesPrinter propertiesPrinter = new SlingPropertiesPrinter(props);
-                final Dictionary<String, String> serviceProps = new Hashtable<String, String>();
-                serviceProps.put(Constants.SERVICE_DESCRIPTION,
-                    "Apache Sling Sling Properties Configuration Printer");
-                serviceProps.put(Constants.SERVICE_VENDOR, "The Apache Software Foundation");
-                serviceProps.put("felix.webconsole.label", "slingprops");
-                serviceProps.put("felix.webconsole.title", "Sling Properties");
-                serviceProps.put("felix.webconsole.configprinter.modes", "always");
-
-                propertiesPlugin = bundleContext.registerService(SlingPropertiesPrinter.class.getName(),
-                        propertiesPrinter,
-                        serviceProps);
-            }
-        }
-    }
-
-    public static void destroyPlugin() {
-        if ( propertiesPlugin != null) {
-            propertiesPlugin.unregister();
-            propertiesPlugin = null;
+        } else {
+           throw new IllegalStateException("No bundle context property 'sling.properties.url' provided");
         }
     }
 
     private static String HEADLINE = "Apache Sling Launchpad Properties";
 
     private final Properties props;
-
-    public SlingPropertiesPrinter(final Properties props) {
-        this.props = props;
-    }
 
     /**
      * Print out the servlet filter chains.

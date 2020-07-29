@@ -30,30 +30,29 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Dictionary;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.sling.settings.SlingSettingsService;
 import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Modified;
+import org.osgi.service.component.propertytypes.ServiceDescription;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
+import org.osgi.service.metatype.annotations.Designate;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * This is the basic implementation of the sling settings service.
- */
+/** This is the basic implementation of the sling settings service. */
+@Component
+@Designate(ocd = SlingSettingsServiceImpl.Configuration.class)
+@ServiceDescription("Apache Sling Settings Service")
 public class SlingSettingsServiceImpl
-    implements SlingSettingsService {
-
-    /** Property containing the sling name. */
-    private static final String SLING_NAME = "sling.name";
-
-    /** Property containing the sling description. */
-    private static final String SLING_DESCRIPTION = "sling.description";
+        implements SlingSettingsService {
 
     /** The logger */
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -67,8 +66,10 @@ public class SlingSettingsServiceImpl
     /** The sling home url */
     private URL slingHomeUrl;
 
-    /** The set of run modes .*/
+    /** The set of run modes . */
     private Set<String> runModes;
+
+    private Configuration configuration;
 
     /** The name of the data file holding the sling id. */
     private static final String ID_FILE = "sling.id.file";
@@ -76,31 +77,40 @@ public class SlingSettingsServiceImpl
     /** The name of the data file holding install run mode options */
     private static final String OPTIONS_FILE = "sling.options.file";
 
-    /** The properties for name, description. */
-    private final Map<String, String> slingProps = new HashMap<String, String>();
+    @ObjectClassDefinition(id = "org.apache.sling.settings.impl.SlingSettingsServiceImpl", name = "Apache Sling Settings Service", 
+            description = "The settings service manages some basic settings of Sling like run modes or information about the current instance.")
+    static @interface Configuration {
+        @AttributeDefinition(name = "Instance Name", description = "A human readable name for the current instance.")
+        String sling_name();
 
-    /**
-     * Create the service and search the Sling home urls and
-     * get/create a sling id.
-     * Setup run modes
-     * @param context The bundle context
-     */
-    public SlingSettingsServiceImpl(final BundleContext context) {
-        this.setupSlingProps(context);
-        this.setupSlingHome(context);
-        this.setupSlingId(context);
-
-        this.setupRunModes(context);
-
+        @AttributeDefinition(name = "Instance Description", description = "A human readable description for the current instance.")
+        String sling_description();
     }
 
+    /** Create the service and search the Sling home urls and get/create a sling id. Setup run modes
+     * 
+     * @param context The bundle context */
+    @Activate
+    public SlingSettingsServiceImpl(final Configuration configuration, final BundleContext context) {
+        this.configuration = configuration;
+        this.setupSlingHome(context);
+        this.setupSlingId(context);
+        this.setupRunModes(context);
+    }
+   
     /**
-     * Get sling home and sling home URL
+     * Constructor only to be used from tests
+     * @param runModes
      */
+    public SlingSettingsServiceImpl(String runModes) {
+        this.runModes = parseRunModes(runModes);
+    }
+
+    /** Get sling home and sling home URL */
     private void setupSlingHome(final BundleContext context) {
         this.slingHome = context.getProperty(SLING_HOME);
         final String url = context.getProperty(SLING_HOME_URL);
-        if ( url != null ) {
+        if (url != null) {
             try {
                 this.slingHomeUrl = new URL(url);
             } catch (MalformedURLException e) {
@@ -109,13 +119,11 @@ public class SlingSettingsServiceImpl
         }
     }
 
-    /**
-     * Get / create sling id
-     */
+    /** Get / create sling id */
     private void setupSlingId(final BundleContext context) {
         // try to read the id from the id file first
         final File idFile = context.getDataFile(ID_FILE);
-        if ( idFile == null ) {
+        if (idFile == null) {
             // the osgi framework does not support storing something in the file system
             throw new RuntimeException("Unable to read from bundle data file.");
         }
@@ -139,45 +147,31 @@ public class SlingSettingsServiceImpl
         }
     }
 
-    /**
-     * Get / create sling id
-     */
-    private void setupSlingProps(final BundleContext context) {
-        synchronized ( this.slingProps ) {
-            if ( this.slingProps.get(SLING_NAME) == null && context.getProperty(SLING_NAME) != null ) {
-                this.slingProps.put(SLING_NAME, context.getProperty(SLING_NAME));
-            }
-            if ( this.slingProps.get(SLING_DESCRIPTION) == null && context.getProperty(SLING_DESCRIPTION) != null ) {
-                this.slingProps.put(SLING_DESCRIPTION, context.getProperty(SLING_DESCRIPTION));
-            }
-        }
-    }
-
     static final class Options implements Serializable {
         private static final long serialVersionUID = 1L;
         String[] modes;
-        String   selected;
+        String selected;
     }
 
     private List<Options> handleOptions(final Set<String> modesSet, final String propOptions) {
         final List<Options> optionsList = new ArrayList<Options>();
-        if ( propOptions != null && propOptions.trim().length() > 0 ) {
+        if (propOptions != null && propOptions.trim().length() > 0) {
 
             final String[] options = propOptions.trim().split("\\|");
-            for(final String opt : options) {
+            for (final String opt : options) {
                 String selected = null;
                 final String[] modes = opt.trim().split(",");
-                for(int i=0; i<modes.length; i++) {
+                for (int i = 0; i < modes.length; i++) {
                     modes[i] = modes[i].trim();
-                    if ( selected != null ) {
+                    if (selected != null) {
                         modesSet.remove(modes[i]);
                     } else {
-                        if ( modesSet.contains(modes[i]) ) {
+                        if (modesSet.contains(modes[i])) {
                             selected = modes[i];
                         }
                     }
                 }
-                if ( selected == null ) {
+                if (selected == null) {
                     selected = modes[0];
                     modesSet.add(modes[0]);
                 }
@@ -190,30 +184,36 @@ public class SlingSettingsServiceImpl
         return optionsList;
     }
 
-    /**
-     * Set up run modes.
-     */
+    private Set<String> parseRunModes(String runModes) {
+        final Set<String> modesSet = new HashSet<>();
+        final String[] modes = runModes.split(",");
+        for (int i = 0; i < modes.length; i++) {
+            modesSet.add(modes[i].trim());
+        }
+        return modesSet;
+    }
+
+    /** Set up run modes. */
     private void setupRunModes(final BundleContext context) {
-        final Set<String> modesSet = new HashSet<String>();
+        final Set<String> modesSet;
 
         // check configuration property first
         final String prop = context.getProperty(RUN_MODES_PROPERTY);
         if (prop != null && prop.trim().length() > 0) {
-            final String[] modes = prop.split(",");
-            for(int i=0; i < modes.length; i++) {
-                modesSet.add(modes[i].trim());
-            }
+            modesSet = parseRunModes(prop);
+        } else {
+            modesSet = new HashSet<>();
         }
 
-        //  handle configured options
+        // handle configured options
         this.handleOptions(modesSet, context.getProperty(RUN_MODE_OPTIONS));
 
         // handle configured install options
         // read persisted options if restart or update
         final List<Options> storedOptions = readOptions(context);
-        if ( storedOptions != null ) {
-            for(final Options o : storedOptions) {
-                for(final String m : o.modes) {
+        if (storedOptions != null) {
+            for (final Options o : storedOptions) {
+                for (final String m : o.modes) {
                     modesSet.remove(m);
                 }
                 modesSet.add(o.selected);
@@ -228,19 +228,18 @@ public class SlingSettingsServiceImpl
         // make the set unmodifiable and synced
         // we probably don't need a synced set as it is read only
         this.runModes = Collections.synchronizedSet(Collections.unmodifiableSet(modesSet));
-        if ( this.runModes.size() > 0 ) {
+        if (this.runModes.size() > 0) {
             logger.info("Active run modes: {}", this.runModes);
         } else {
             logger.info("No run modes active");
         }
     }
 
-
     @SuppressWarnings("unchecked")
     private List<Options> readOptions(final BundleContext context) {
         List<Options> optionsList = null;
         final File file = context.getDataFile(OPTIONS_FILE);
-        if ( file.exists() ) {
+        if (file.exists()) {
             FileInputStream fis = null;
             ObjectInputStream ois = null;
             try {
@@ -248,16 +247,22 @@ public class SlingSettingsServiceImpl
                 ois = new ObjectInputStream(fis);
 
                 optionsList = (List<Options>) ois.readObject();
-            } catch ( final IOException ioe ) {
+            } catch (final IOException ioe) {
                 throw new RuntimeException("Unable to read from options data file.", ioe);
             } catch (ClassNotFoundException cnfe) {
                 throw new RuntimeException("Unable to read from options data file.", cnfe);
             } finally {
-                if ( ois != null ) {
-                    try { ois.close(); } catch ( final IOException ignore) {}
+                if (ois != null) {
+                    try {
+                        ois.close();
+                    } catch (final IOException ignore) {
+                    }
                 }
-                if ( fis != null ) {
-                    try { fis.close(); } catch ( final IOException ignore) {}
+                if (fis != null) {
+                    try {
+                        fis.close();
+                    } catch (final IOException ignore) {
+                    }
                 }
             }
         }
@@ -272,53 +277,49 @@ public class SlingSettingsServiceImpl
             fos = new FileOutputStream(file);
             oos = new ObjectOutputStream(fos);
             oos.writeObject(optionsList);
-        } catch ( final IOException ioe ) {
+        } catch (final IOException ioe) {
             throw new RuntimeException("Unable to write to options data file.", ioe);
         } finally {
-            if ( oos != null ) {
-                try { oos.close(); } catch ( final IOException ignore) {}
+            if (oos != null) {
+                try {
+                    oos.close();
+                } catch (final IOException ignore) {
+                }
             }
-            if ( fos != null ) {
-                try { fos.close(); } catch ( final IOException ignore) {}
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (final IOException ignore) {
+                }
             }
         }
     }
 
-    /**
-     * @see org.apache.sling.settings.SlingSettingsService#getAbsolutePathWithinSlingHome(String)
-     */
+    /** @see org.apache.sling.settings.SlingSettingsService#getAbsolutePathWithinSlingHome(String) */
     @Override
     public String getAbsolutePathWithinSlingHome(final String relativePath) {
         return new File(slingHome, relativePath).getAbsolutePath();
     }
 
-    /**
-     * @see org.apache.sling.settings.SlingSettingsService#getSlingId()
-     */
+    /** @see org.apache.sling.settings.SlingSettingsService#getSlingId() */
     @Override
     public String getSlingId() {
         return this.slingId;
     }
 
-    /**
-     * @see org.apache.sling.settings.SlingSettingsService#getSlingHome()
-     */
+    /** @see org.apache.sling.settings.SlingSettingsService#getSlingHome() */
     @Override
     public URL getSlingHome() {
         return this.slingHomeUrl;
     }
 
-    /**
-     * @see org.apache.sling.settings.SlingSettingsService#getSlingHomePath()
-     */
+    /** @see org.apache.sling.settings.SlingSettingsService#getSlingHomePath() */
     @Override
     public String getSlingHomePath() {
         return this.slingHome;
     }
 
-    /**
-     * @see org.apache.sling.settings.SlingSettingsService#getRunModes()
-     */
+    /** @see org.apache.sling.settings.SlingSettingsService#getRunModes() */
     @Override
     public Set<String> getRunModes() {
         return this.runModes;
@@ -365,42 +366,27 @@ public class SlingSettingsServiceImpl
      */
     @Override
     public String getSlingName() {
-        synchronized ( this.slingProps ) {
-            String name = this.slingProps.get(SLING_NAME);
-            if ( name == null ) {
-                name = "Instance " + this.slingId; // default
-            }
-            return name;
+        String name = configuration.sling_name();
+        if ( name == null ) {
+            name = "Instance " + this.slingId; // default
         }
+        return name;
     }
 
-    /**
-     * @see org.apache.sling.settings.SlingSettingsService#getSlingDescription()
-     */
+    /** @see org.apache.sling.settings.SlingSettingsService#getSlingDescription() */
     @Override
     public String getSlingDescription() {
-        synchronized ( this.slingProps ) {
-            String desc = this.slingProps.get(SLING_DESCRIPTION);
-            if ( desc == null ) {
-                desc = "Instance with id " + this.slingId + " and run modes " + this.getRunModes(); // default
-            }
-            return desc;
+        String desc = configuration.sling_description();
+        if (desc == null) {
+            desc = "Instance with id " + this.slingId + " and run modes " + this.getRunModes(); // default
         }
+        return desc;
     }
 
-    /**
-     * Update the configuration of this service
-     */
-    public void update(final Dictionary<String, Object> properties) {
-        if ( properties != null ) {
-            synchronized ( this.slingProps ) {
-                if ( properties.get(SLING_NAME) != null ) {
-                    this.slingProps.put(SLING_NAME, properties.get(SLING_NAME).toString());
-                }
-                if ( properties.get(SLING_DESCRIPTION) != null ) {
-                    this.slingProps.put(SLING_DESCRIPTION, properties.get(SLING_DESCRIPTION).toString());
-                }
-            }
-        }
+    /** Update the configuration of this service */
+    @Modified
+    public void update(final Configuration configuration) {
+        // TODO is configuration thread safe i.e. new object per call?
+        this.configuration = configuration;
     }
 }
