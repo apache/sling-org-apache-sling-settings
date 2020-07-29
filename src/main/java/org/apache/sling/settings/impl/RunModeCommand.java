@@ -28,13 +28,11 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.propertytypes.ServiceDescription;
-import org.osgi.service.component.propertytypes.ServiceVendor;
 
 /**
  * Run mode command for the shell.
  */
 @Component
-@ServiceVendor("The Apache Software Foundation")
 @ServiceDescription("Apache Sling Sling Run Mode Shell Command")
 public class RunModeCommand implements Command {
 

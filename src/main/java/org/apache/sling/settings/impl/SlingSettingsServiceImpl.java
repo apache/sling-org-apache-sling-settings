@@ -41,7 +41,6 @@ import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.propertytypes.ServiceDescription;
-import org.osgi.service.component.propertytypes.ServiceVendor;
 import org.osgi.service.metatype.annotations.AttributeDefinition;
 import org.osgi.service.metatype.annotations.Designate;
 import org.osgi.service.metatype.annotations.ObjectClassDefinition;
@@ -51,7 +50,6 @@ import org.slf4j.LoggerFactory;
 /** This is the basic implementation of the sling settings service. */
 @Component
 @Designate(ocd = SlingSettingsServiceImpl.Configuration.class)
-@ServiceVendor("The Apache Software Foundation")
 @ServiceDescription("Apache Sling Settings Service")
 public class SlingSettingsServiceImpl
         implements SlingSettingsService {
