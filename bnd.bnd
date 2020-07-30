@@ -1,4 +1,4 @@
-Bundle-DocURL: http://sling.apache.org/documentation/bundles/sling-settings-orgapacheslingsettings.html
+Bundle-DocURL: https://sling.apache.org/documentation/bundles/sling-settings-org-apache-sling-settings.html
 
 DynamicImport-Package:\
   org.osgi.service.cm,\
