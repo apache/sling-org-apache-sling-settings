@@ -23,25 +23,29 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a configuration printer for the web console which
  * prints out the Sling properties from Launchpad if available.
  */
-@Component(service = SlingPropertiesPrinter.class, property= {"felix.webconsole.label=slingprops","felix.webconsole.title=Sling Properties","felix.webconsole.configprinter.modes=always"})
 public class SlingPropertiesPrinter {
 
-    @Activate
-    public SlingPropertiesPrinter(BundleContext bundleContext) throws IOException {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SlingPropertiesPrinter.class);
+    
+    // Called from bundle activator
+    public static void init(BundleContext bundleContext) throws IOException {
         // if the properties are available, we register the sling properties plugin
+        Properties props;
         final String propUrl = bundleContext.getProperty("sling.properties.url");
         if ( propUrl != null ) {
             // try to read properties
@@ -58,16 +62,34 @@ public class SlingPropertiesPrinter {
                 props = tmp;
 
             } catch (IOException ioe) {
-                throw new IOException("Unable to read sling properties from " + propUrl, ioe);
+                LOGGER.error("Unable to read sling properties from '{}'", propUrl, ioe);
+                return;
             }
         } else {
-           throw new IllegalStateException("No bundle context property 'sling.properties.url' provided");
+           LOGGER.debug("No bundle context property 'sling.properties.url' provided, not starting 'slingprops' webconsole plugin!");
+           return;
         }
+        final SlingPropertiesPrinter propertiesPrinter = new SlingPropertiesPrinter(props);
+        final Dictionary<String, String> serviceProps = new Hashtable<>();
+        serviceProps.put("felix.webconsole.label", "slingprops");
+        serviceProps.put("felix.webconsole.title", "Sling Properties");
+        serviceProps.put("felix.webconsole.configprinter.modes", "always");
+
+        // no need to keep serviceregistration return value as deregistration only happens automatically once bundle stops
+        bundleContext.registerService(SlingPropertiesPrinter.class.getName(),
+                propertiesPrinter,
+                serviceProps);
     }
+
 
     private static String HEADLINE = "Apache Sling Launchpad Properties";
 
     private final Properties props;
+
+    public SlingPropertiesPrinter(Properties props) throws IOException {
+        this.props = props;
+    }
+
 
     /**
      * Print out the servlet filter chains.
