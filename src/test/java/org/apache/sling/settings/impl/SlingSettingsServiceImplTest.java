@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -58,8 +59,8 @@ public class SlingSettingsServiceImplTest {
 
     @Before
     public void before() throws IOException {
-        slingIdFile = File.createTempFile(SLING_ID_FILE_NAME, "");
-        optionsFile = File.createTempFile(OPTIONS_FILE_NAME, "");
+        slingIdFile = Files.createTempFile(SLING_ID_FILE_NAME, "").toFile();
+        optionsFile = Files.createTempFile(OPTIONS_FILE_NAME, "").toFile();
         Converter c = Converters.standardConverter();
         // use standard configuration
         configuration = c.convert(new HashMap<String, Object>()).to(SlingSettingsServiceImpl.Configuration.class);
