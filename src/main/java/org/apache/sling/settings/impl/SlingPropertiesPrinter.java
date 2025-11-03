@@ -41,21 +41,21 @@ import org.slf4j.LoggerFactory;
 public class SlingPropertiesPrinter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SlingPropertiesPrinter.class);
-    
+
     // Called from bundle activator
     public static void init(BundleContext bundleContext) throws IOException {
         // if the properties are available, we register the sling properties plugin
         Properties props;
         final String propUrl = bundleContext.getProperty("sling.properties.url");
-        if ( propUrl != null ) {
+        if (propUrl != null) {
             // try to read properties
             try (final InputStream is = new URL(propUrl).openStream()) {
                 final Properties tmp = new Properties();
                 tmp.load(is);
                 // update props
-                for(final Object key : tmp.keySet()) {
+                for (final Object key : tmp.keySet()) {
                     final Object value = bundleContext.getProperty(key.toString());
-                    if ( value != null ) {
+                    if (value != null) {
                         tmp.put(key, value);
                     }
                 }
@@ -66,8 +66,9 @@ public class SlingPropertiesPrinter {
                 return;
             }
         } else {
-           LOGGER.debug("No bundle context property 'sling.properties.url' provided, not starting 'slingprops' webconsole plugin!");
-           return;
+            LOGGER.debug(
+                    "No bundle context property 'sling.properties.url' provided, not starting 'slingprops' webconsole plugin!");
+            return;
         }
         final SlingPropertiesPrinter propertiesPrinter = new SlingPropertiesPrinter(props);
         final Dictionary<String, String> serviceProps = new Hashtable<>();
@@ -75,12 +76,10 @@ public class SlingPropertiesPrinter {
         serviceProps.put("felix.webconsole.title", "Sling Properties");
         serviceProps.put("felix.webconsole.configprinter.modes", "always");
 
-        // no need to keep serviceregistration return value as deregistration only happens automatically once bundle stops
-        bundleContext.registerService(SlingPropertiesPrinter.class.getName(),
-                propertiesPrinter,
-                serviceProps);
+        // no need to keep serviceregistration return value as deregistration only happens automatically once bundle
+        // stops
+        bundleContext.registerService(SlingPropertiesPrinter.class.getName(), propertiesPrinter, serviceProps);
     }
-
 
     private static String HEADLINE = "Apache Sling Launchpad Properties";
 
@@ -90,7 +89,6 @@ public class SlingPropertiesPrinter {
         this.props = props;
     }
 
-
     /**
      * Print out the servlet filter chains.
      * @see org.apache.felix.webconsole.ConfigurationPrinter#printConfiguration(java.io.PrintWriter)
@@ -98,13 +96,13 @@ public class SlingPropertiesPrinter {
     public void printConfiguration(PrintWriter pw) {
         pw.println(HEADLINE);
         pw.println();
-        SortedSet<Object> keys = new TreeSet<Object>( props.keySet() );
-        for ( Iterator<Object> ki = keys.iterator(); ki.hasNext(); ) {
+        SortedSet<Object> keys = new TreeSet<Object>(props.keySet());
+        for (Iterator<Object> ki = keys.iterator(); ki.hasNext(); ) {
             final Object key = ki.next();
-            pw.print( key );
+            pw.print(key);
             pw.print(" = ");
             final Object value = props.get(key);
-            if ( value != null ) {
+            if (value != null) {
                 pw.print(value.toString());
             }
             pw.println();
@@ -115,14 +113,14 @@ public class SlingPropertiesPrinter {
      * @see org.apache.felix.webconsole.ModeAwareConfigurationPrinter#printConfiguration(java.io.PrintWriter, java.lang.String)
      */
     public void printConfiguration(PrintWriter printWriter, String mode) {
-        if ( ! "zip".equals(mode) ) {
+        if (!"zip".equals(mode)) {
             this.printConfiguration(printWriter);
         } else {
             // write into byte array first
             String contents = null;
             try {
                 final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                this.props.store(baos , HEADLINE);
+                this.props.store(baos, HEADLINE);
                 contents = baos.toString("8859_1");
             } catch (IOException ioe) {
                 // if something goes wrong here we default to text output

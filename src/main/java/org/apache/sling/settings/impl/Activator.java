@@ -35,5 +35,4 @@ public class Activator implements BundleActivator {
     public void stop(BundleContext context) throws Exception {
         // no need to unregister services registered at start(...) as this happens implicitly
     }
-
 }
