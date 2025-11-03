@@ -138,7 +138,7 @@ public interface SlingSettingsService {
      * conjunction ::= notrunmode | runmode
      * notrunmode ::= '-' runmode
      * </code></pre>
-     * 
+     *
      * The operator order is first "-" (not), second "." (AND), last "," (OR).
      * @param spec the run mode spec string to check against
      * @return the number of matching run modes or 0 if no match. If multiple disjunctions match the one with the highest number of matching run modes is returned.

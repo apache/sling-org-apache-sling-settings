@@ -51,8 +51,7 @@ import org.slf4j.LoggerFactory;
 @Component
 @Designate(ocd = SlingSettingsServiceImpl.Configuration.class)
 @ServiceDescription("Apache Sling Settings Service")
-public class SlingSettingsServiceImpl
-        implements SlingSettingsService {
+public class SlingSettingsServiceImpl implements SlingSettingsService {
 
     /** The logger */
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -77,18 +76,23 @@ public class SlingSettingsServiceImpl
     /** The name of the data file holding install run mode options */
     private static final String OPTIONS_FILE = "sling.options.file";
 
-    @ObjectClassDefinition(id = "org.apache.sling.settings.impl.SlingSettingsServiceImpl", name = "Apache Sling Settings Service", 
-            description = "The settings service manages some basic settings of Sling like run modes or information about the current instance.")
+    @ObjectClassDefinition(
+            id = "org.apache.sling.settings.impl.SlingSettingsServiceImpl",
+            name = "Apache Sling Settings Service",
+            description =
+                    "The settings service manages some basic settings of Sling like run modes or information about the current instance.")
     static @interface Configuration {
         @AttributeDefinition(name = "Instance Name", description = "A human readable name for the current instance.")
         String sling_name();
 
-        @AttributeDefinition(name = "Instance Description", description = "A human readable description for the current instance.")
+        @AttributeDefinition(
+                name = "Instance Description",
+                description = "A human readable description for the current instance.")
         String sling_description();
     }
 
     /** Create the service and search the Sling home urls and get/create a sling id. Setup run modes
-     * 
+     *
      * @param context The bundle context */
     @Activate
     public SlingSettingsServiceImpl(final Configuration configuration, final BundleContext context) {
@@ -97,7 +101,7 @@ public class SlingSettingsServiceImpl
         this.setupSlingId(context);
         this.setupRunModes(context);
     }
-   
+
     /**
      * Constructor only to be used from tests
      * @param runModes
@@ -367,7 +371,7 @@ public class SlingSettingsServiceImpl
     @Override
     public String getSlingName() {
         String name = configuration.sling_name();
-        if ( name == null ) {
+        if (name == null) {
             name = "Instance " + this.slingId; // default
         }
         return name;
