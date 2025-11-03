@@ -229,9 +229,8 @@ public class SlingSettingsServiceImpl implements SlingSettingsService {
         // and always save new install options
         writeOptions(context, optionsList);
 
-        // make the set unmodifiable and synced
-        // we probably don't need a synced set as it is read only
-        this.runModes = Collections.synchronizedSet(Collections.unmodifiableSet(modesSet));
+        // make the set unmodifiable, as always the same set will be returned
+        this.runModes = Collections.unmodifiableSet(modesSet);
         if (this.runModes.size() > 0) {
             logger.info("Active run modes: {}", this.runModes);
         } else {
