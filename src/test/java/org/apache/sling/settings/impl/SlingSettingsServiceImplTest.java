@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.RandomStringUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.sling.settings.SlingSettingsService;
 import org.junit.After;
 import org.junit.Assert;
@@ -100,7 +100,7 @@ public class SlingSettingsServiceImplTest {
     @Test
     public void testGetSlingIdFromTooLargeData() throws IOException {
         final String expected = SlingIdUtil.createSlingId();
-        final String data = expected + RandomStringUtils.randomAscii(1024 * 1024); // 1MB long random String
+        final String data = expected + RandomStringUtils.insecure().nextAscii(1024 * 1024); // 1MB long random String
         SlingIdUtil.writeSlingId(slingIdFile, data);
         final SlingSettingsService slingSettingsService = createSlingSettingsService(slingIdFile, optionsFile);
 
@@ -111,7 +111,7 @@ public class SlingSettingsServiceImplTest {
 
     @Test
     public void testGetSlingIdFromTooShortData() throws IOException {
-        final String data = RandomStringUtils.randomAscii(8); // 8 byte long random String
+        final String data = RandomStringUtils.insecure().nextAscii(8); // 8 byte long random String
         SlingIdUtil.writeSlingId(slingIdFile, data);
         final SlingSettingsService slingSettingsService = createSlingSettingsService(slingIdFile, optionsFile);
 
