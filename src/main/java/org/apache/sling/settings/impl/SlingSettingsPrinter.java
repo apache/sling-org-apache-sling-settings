@@ -30,7 +30,13 @@ import org.osgi.service.component.annotations.Reference;
  * prints out the sling settings.
  *
  */
-@Component(service = SlingSettingsPrinter.class, property= {"felix.webconsole.label=slingsettings","felix.webconsole.title=Sling Settings","felix.webconsole.configprinter.modes=always"})
+@Component(
+        service = SlingSettingsPrinter.class,
+        property = {
+            "felix.webconsole.label=slingsettings",
+            "felix.webconsole.title=Sling Settings",
+            "felix.webconsole.configprinter.modes=always"
+        })
 public class SlingSettingsPrinter {
 
     private static String HEADLINE = "Apache Sling Settings";
