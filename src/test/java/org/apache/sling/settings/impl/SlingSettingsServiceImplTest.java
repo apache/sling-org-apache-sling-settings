@@ -18,11 +18,6 @@
  */
 package org.apache.sling.settings.impl;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -45,6 +40,11 @@ import org.osgi.framework.BundleContext;
 import org.osgi.util.converter.Converter;
 import org.osgi.util.converter.Converters;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class SlingSettingsServiceImplTest {
 
     private static final String SLING_ID_FILE_NAME = "sling.id.file";
@@ -54,7 +54,7 @@ public class SlingSettingsServiceImplTest {
     private File slingIdFile = null;
 
     private File optionsFile = null;
-    
+
     private SlingSettingsServiceImpl.Configuration configuration;
 
     @Before
@@ -121,27 +121,47 @@ public class SlingSettingsServiceImplTest {
 
     @Test
     public void testGetBestRunModeMatchCountFromSpec() {
-        Assert.assertEquals(0, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4", Collections.singleton("test5")));
-        Assert.assertEquals(0, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4", Stream.of("test1", "test3").collect(Collectors.toSet())));
-        Assert.assertEquals(0, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4", Stream.of("test2", "test3").collect(Collectors.toSet())));
-        Assert.assertEquals(2, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4", Stream.of("test1", "test2").collect(Collectors.toSet())));
-        Assert.assertEquals(2, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4", Stream.of("test2", "test4").collect(Collectors.toSet())));
-        Assert.assertEquals(3, SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec("test1.test2,-test3.test4,test5.test6.test7", Stream.of("test1", "test2", "test4", "test5", "test6", "test7").collect(Collectors.toSet())));
+        Assert.assertEquals(
+                0,
+                SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec(
+                        "test1.test2,-test3.test4", Collections.singleton("test5")));
+        Assert.assertEquals(
+                0,
+                SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec(
+                        "test1.test2,-test3.test4", Stream.of("test1", "test3").collect(Collectors.toSet())));
+        Assert.assertEquals(
+                0,
+                SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec(
+                        "test1.test2,-test3.test4", Stream.of("test2", "test3").collect(Collectors.toSet())));
+        Assert.assertEquals(
+                2,
+                SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec(
+                        "test1.test2,-test3.test4", Stream.of("test1", "test2").collect(Collectors.toSet())));
+        Assert.assertEquals(
+                2,
+                SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec(
+                        "test1.test2,-test3.test4", Stream.of("test2", "test4").collect(Collectors.toSet())));
+        Assert.assertEquals(
+                3,
+                SlingSettingsServiceImpl.getBestRunModeMatchCountFromSpec(
+                        "test1.test2,-test3.test4,test5.test6.test7",
+                        Stream.of("test1", "test2", "test4", "test5", "test6", "test7")
+                                .collect(Collectors.toSet())));
     }
 
-    private SlingSettingsService createSlingSettingsService(final File slingIdFile, final File optionsFile) throws IOException {
+    private SlingSettingsService createSlingSettingsService(final File slingIdFile, final File optionsFile)
+            throws IOException {
         BundleContext context = mock(BundleContext.class);
         when(context.getDataFile(SLING_ID_FILE_NAME)).thenReturn(slingIdFile);
         when(context.getDataFile(OPTIONS_FILE_NAME)).thenReturn(optionsFile);
         // write options
         final List<SlingSettingsServiceImpl.Options> options = new ArrayList<SlingSettingsServiceImpl.Options>();
         try (FileOutputStream fos = new FileOutputStream(optionsFile);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+                ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(options);
         } catch (final IOException ioe) {
             throw new RuntimeException("Unable to write to options data file.", ioe);
         }
         return new SlingSettingsServiceImpl(configuration, context);
     }
-
 }

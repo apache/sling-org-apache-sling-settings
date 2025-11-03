@@ -18,9 +18,6 @@
  */
 package org.apache.sling.settings.impl;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -31,15 +28,19 @@ import java.util.Set;
 import org.apache.sling.settings.SlingSettingsService;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
 import org.osgi.framework.BundleContext;
 import org.osgi.util.converter.Converter;
 import org.osgi.util.converter.Converters;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(MockitoJUnitRunner.class)
 public class RunModeImplTest {
@@ -67,9 +68,9 @@ public class RunModeImplTest {
 
             @Override
             public File answer(InvocationOnMock invocation) throws Throwable {
-                String filename = invocation.getArgumentAt(0, String.class);
+                String filename = invocation.getArgument(0, String.class);
                 File f = files.get(filename);
-                if ( f == null ) {
+                if (f == null) {
                     try {
                         f = File.createTempFile(filename, "id");
                         f.delete();
@@ -81,21 +82,21 @@ public class RunModeImplTest {
                 return f;
             }
         });
- 
+
         Mockito.when(mockBundleContext.getProperty(Mockito.anyString())).then(new Answer<String>() {
             @Override
             public String answer(InvocationOnMock invocation) throws Throwable {
-                String key = invocation.getArgumentAt(0, String.class);
-                if ( key.equals(SlingSettingsService.RUN_MODES_PROPERTY) ) {
+                String key = invocation.getArgument(0, String.class);
+                if (key.equals(SlingSettingsService.RUN_MODES_PROPERTY)) {
                     return runModes;
-                } else if ( key.equals(SlingSettingsService.RUN_MODE_OPTIONS) ) {
+                } else if (key.equals(SlingSettingsService.RUN_MODE_OPTIONS)) {
                     return options;
-                } else if ( key.equals(SlingSettingsService.RUN_MODE_INSTALL_OPTIONS) ) {
+                } else if (key.equals(SlingSettingsService.RUN_MODE_INSTALL_OPTIONS)) {
                     return installOptions;
                 }
                 return null;
             }
-         });
+        });
     }
 
     private void assertParse(String str, String[] expected) {
@@ -110,12 +111,12 @@ public class RunModeImplTest {
         Assert.assertEquals("Parsed runModes match for '" + str + "'", expectedSet, modes);
     }
 
-    @org.junit.Test
+    @Test
     public void testParseRunModes() {
         assertParse(null, new String[0]);
         assertParse("", new String[0]);
-        assertParse(" foo \t", new String[] { "foo" });
-        assertParse(" foo \t,  bar\n", new String[] { "foo", "bar" });
+        assertParse(" foo \t", new String[] {"foo"});
+        assertParse(" foo \t,  bar\n", new String[] {"foo", "bar"});
     }
 
     private void assertActive(SlingSettingsService s, boolean active, String... modes) {
@@ -128,14 +129,14 @@ public class RunModeImplTest {
         }
     }
 
-    @org.junit.Test
+    @Test
     public void testMatchesNotEmpty() {
         final SlingSettingsService rm = createSlingSettingsService("foo,bar", null, null);
         assertActive(rm, true, "foo", "bar");
         assertActive(rm, false, "wiz", "bah", "");
     }
 
-    @org.junit.Test
+    @Test
     public void testOptions() {
         final SlingSettingsService rm = createSlingSettingsService("foo,bar", "a,b,c|d,e,f", null);
         assertActive(rm, true, "foo", "bar", "a", "d");
